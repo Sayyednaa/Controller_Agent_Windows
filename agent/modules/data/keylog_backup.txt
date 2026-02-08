@@ -1,38 +1,27 @@
 
 
-[2026-02-08 23:03:25] [Window: Bash console 45023744 : pcmoncon : PythonAnywhere - Comet]
-pip install whitenoise
+[2026-02-08 23:13:19] [Window: New Incognito Tab - Comet]
+moncpcmoncon.pythonanywhere.con
+pcmoncon
+
+[2026-02-08 23:13:19] [Window: New Incognito Tab - Comet]
+moncpcmoncon.pythonanywhere.con
+pcmoncon
+
+[2026-02-08 23:13:38] [Window: google.com/search?q=pcmoncon.pythonanywhere.con&oq=pcmoncon.pythonanywhere.con&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCTEyNjgwajBqMagCALACAA&sourceid=chrome&ie=UTF-8 - Comet]
+.p
+
+[2026-02-08 23:13:19] [Window: New Incognito Tab - Comet]
+moncpcmoncon.pythonanywhere.con
+pcmoncon
+
+[2026-02-08 23:13:38] [Window: google.com/search?q=pcmoncon.pythonanywhere.con&oq=pcmoncon.pythonanywhere.con&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCTEyNjgwajBqMagCALACAA&sourceid=chrome&ie=UTF-8 - Comet]
+.p
+
+[2026-02-08 23:13:38] [Window: pcmoncon.pythonanywhere.con - Google Zoeken - Comet]
+ythonanywhere.com
+nanywhere.com
 
 
-[2026-02-08 23:03:25] [Window: Bash console 45023744 : pcmoncon : PythonAnywhere - Comet]
-pip install whitenoise
-
-
-[2026-02-08 23:03:54] [Window: Controller Agent - Antigravity - requirements.txt]
-push all projects to controller repo and server to server repo
-roller repo and server to server repo
-
-
-[2026-02-08 23:04:30] [Window: Log in | Django site admin - Comet]
-thebelarussian	therussian@123
-ian	therussian@123
-
-
-[2026-02-08 23:04:50] [Window: Error: Log in | Django site admin - Comet]
-therussian@123
-guy	Therussian@123
-Therussian@	therussian@123
-123
-Therussian@	therussian@123
-
-
-[2026-02-08 23:06:31] [Window: Dashboard - Controller - Comet]
-123
-Therussian@	therussian@123
-
-
-[2026-02-08 23:06:31] [Window: Dashboard - Controller - Comet]
+[2026-02-08 23:14:29] [Window: Sayyednaa/server - Comet]
 
-
-[2026-02-08 23:06:45] [Window: Controller Agent - Antigravity - .env.example]
-
