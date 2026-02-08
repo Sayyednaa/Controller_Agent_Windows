@@ -61,12 +61,13 @@ def dashboard(request):
             'time': kl.received_at,
         })
         
-    for cr in BrowserCredential.objects.select_related('device').order_by('-received_at')[:3]:
         recent_activity.append({
             'type': 'credential',
             'icon': 'lock',
-            'message': f'New credential for {cr.origin_url[:30]} from {cr.device.hostname}',
+            'message': f'New credential for {cr.origin_url}',
+            'device_hostname': cr.device.hostname,
             'time': cr.received_at,
+            'url': cr.origin_url
         })
     
     recent_activity.sort(key=lambda x: x['time'], reverse=True)

@@ -1,10 +1,49 @@
 
 
-[2026-02-08 19:58:27] [Window: Extensions - Comet]
+[2026-02-08 20:03:39] [Window: chrome://serviceworker-internals - Comet]
+for
+
+[2026-02-08 20:03:39] [Window: chrome://serviceworker-internals - Comet]
+for
+
+[2026-02-08 20:04:33] [Window: Test Login | Practice Test Automation - Comet]
+ex
+
+
+[2026-02-08 20:03:39] [Window: chrome://serviceworker-internals - Comet]
+for
+
+[2026-02-08 20:04:33] [Window: Test Login | Practice Test Automation - Comet]
+ex
+
+
+[2026-02-08 20:04:41] [Window: Login Example - Semantic - Comet]
+sdfjkhs!@dskjsd.com	fjsdlkfjklsd@12312
+
+
+[2026-02-08 20:05:01] [Window: Controller Agent - Antigravity - background.js]
+display full urls, click to open in new tab, everywhere url is lishown in server project
+ywhere url is lishown in server project
+
+
+[2026-02-08 20:05:39] [Window: Extensions - Comet]
+ywhere url is lishown in server project
+
+
+[2026-02-08 20:05:39] [Window: Extensions - Comet]
 
 
-[2026-02-08 19:58:27] [Window: Extensions - Comet]
+[2026-02-08 20:05:48] [Window: New Tab - Comet]
+ex
+ywhere url is lishown in server project
+
+
+[2026-02-08 20:05:39] [Window: Extensions - Comet]
 
 
-[2026-02-08 19:58:30] [Window: Controller Agent - Antigravity - background.js]
- showing inactive after few minutes
+[2026-02-08 20:05:48] [Window: New Tab - Comet]
+ex
+
+
+[2026-02-08 20:05:55] [Window: Login Example - Semantic - Comet]
+982
