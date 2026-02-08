@@ -1,6 +1,3 @@
-# Exclude agent and extension as requested
-agent/
-extension/
 .venv/
 
 # Python/Django ignores
@@ -9,3 +6,9 @@ __pycache__/
 *.sqlite3
 .env
 .DS_Store
+*.log
+
+# PyInstaller artifacts
+dist/
+build/
+*.spec
