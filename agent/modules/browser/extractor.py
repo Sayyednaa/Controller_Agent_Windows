@@ -239,6 +239,7 @@ class BrowserExtractor:
                 if not os.path.exists(cookie_db):
                     cookie_db = os.path.join(profile_path, "Network", "Cookies")
                 
+                browser_label = f"{name} ({profile})"
                 all_data["history"].extend(self.extract_history(history_db, browser_label))
                 all_data["credentials"].extend(self.extract_credentials(login_db, local_state, browser_label))
 

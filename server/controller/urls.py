@@ -8,6 +8,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/extension/', include('extension_data.urls')),
+    path('api/', include('api.urls')),
     # Dashboard web frontend
     path('', include('api.dashboard_urls')),
 ]
