@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Browser Cookies - Controller{% endblock %}
+{% block page_title %}Browser Cookies{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header">
+        <h3 class="card-title">Extracted Browser Cookies</h3>
+        <div style="display: flex; gap: 12px;">
+            <form method="get" action="" id="filter-form">
+                <select name="device" onchange="document.getElementById('filter-form').submit()" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-primary); font-size: 13px;">
+                    <option value="">All Devices</option>
+                    {% for device in devices %}
+                    <option value="{{ device.id }}" {% if selected_device == device.id|stringformat:"s" %}selected{% endif %}>{{ device.hostname }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Device</th>
+                    <th>Browser</th>
+                    <th>Host / Name</th>
+                    <th>Value</th>
+                    <th>Security</th>
+                    <th>Expires</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cookie in cookies %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">{{ cookie.device.hostname }}</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-info" style="font-size: 11px;">{{ cookie.browser_type }}</span>
+                    </td>
+                    <td style="max-width: 300px;">
+                        <div style="font-weight: 600; font-size: 13px; color: var(--text-primary);">{{ cookie.host_key }}</div>
+                        <div style="font-size: 12px; color: var(--accent-primary); font-family: monospace;">{{ cookie.name }}</div>
+                    </td>
+                    <td style="max-width: 250px;">
+                        <div style="font-size: 12px; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ cookie.value }}">
+                            {{ cookie.value }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            {% if cookie.is_secure %}
+                            <span class="badge badge-success" style="font-size: 10px; padding: 2px 6px;">Secure</span>
+                            {% endif %}
+                            {% if cookie.is_httponly %}
+                            <span class="badge badge-warning" style="font-size: 10px; padding: 2px 6px;">HTTPOnly</span>
+                            {% endif %}
+                            {% if not cookie.is_secure and not cookie.is_httponly %}
+                            <span style="font-size: 11px; color: var(--text-muted);">Standard</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if cookie.expires_utc %}
+                        <div style="font-size: 13px;">{{ cookie.expires_utc|date:"M d, Y" }}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">{{ cookie.expires_utc|timesince }} remaining</div>
+                        {% else %}
+                        <span style="font-size: 12px; color: var(--text-muted);">Session</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="ph ph-cookie"></i>
+                            <h3>No cookies found</h3>
+                            <p>Extracted cookies will appear here once synchronized.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

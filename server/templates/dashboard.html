@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Controller{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="card stat-card fade-in">
+        <div class="stat-icon purple">
+            <i class="ph-bold ph-devices"></i>
+        </div>
+        <div class="stat-value">{{ total_devices }}</div>
+        <div class="stat-label">Total Devices</div>
+        <div class="stat-change up">
+            <i class="ph ph-trend-up"></i>
+            {{ active_devices }} online
+        </div>
+    </div>
+    
+    <div class="card stat-card fade-in">
+        <div class="stat-icon blue">
+            <i class="ph-bold ph-camera"></i>
+        </div>
+        <div class="stat-value">{{ total_screenshots }}</div>
+        <div class="stat-label">Screenshots Today</div>
+        <div class="stat-change up">
+            <i class="ph ph-trend-up"></i>
+            +{{ screenshots_change }}%
+        </div>
+    </div>
+    
+    <div class="card stat-card fade-in">
+        <div class="stat-icon green">
+            <i class="ph-bold ph-keyboard"></i>
+        </div>
+        <div class="stat-value">{{ total_keylogs }}</div>
+        <div class="stat-label">Keylog Entries</div>
+        <div class="stat-change up">
+            <i class="ph ph-clock"></i>
+            Last 24h
+        </div>
+    </div>
+    
+    <div class="card stat-card fade-in">
+        <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.15); color: var(--info);">
+            <i class="ph-bold ph-lock-key"></i>
+        </div>
+        <div class="stat-value">{{ total_creds }}</div>
+        <div class="stat-label">Saved Credentials</div>
+        <div class="stat-change up">
+            <i class="ph ph-shield-check"></i>
+            Decrypted
+        </div>
+    </div>
+    
+    <div class="card stat-card fade-in">
+        <div class="stat-icon orange">
+            <i class="ph-bold ph-terminal"></i>
+        </div>
+        <div class="stat-value">{{ pending_commands }}</div>
+        <div class="stat-label">Pending Commands</div>
+        {% if pending_commands > 0 %}
+        <div class="stat-change down">
+            <span class="badge-dot"></span>
+            Awaiting execution
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Recent Devices -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Active Devices</h3>
+            <a href="{% url 'devices' %}" class="btn btn-secondary btn-sm">
+                View All
+                <i class="ph ph-arrow-right"></i>
+            </a>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Status</th>
+                        <th>Last Seen</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in recent_devices %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; background: var(--bg-tertiary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
+                                    <i class="ph ph-desktop" style="font-size: 18px; color: var(--text-secondary);"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 500;">{{ device.hostname }}</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">{{ device.device_id|truncatechars:16 }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if device.is_online %}
+                            <span class="badge badge-success">
+                                <span class="badge-dot"></span>
+                                Online
+                            </span>
+                            {% else %}
+                            <span class="badge badge-warning">
+                                <span class="badge-dot"></span>
+                                Offline
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="color: var(--text-secondary);">{{ device.last_seen|timesince }} ago</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{% url 'device_detail' device.device_id %}" class="btn btn-secondary btn-icon btn-sm" title="View Details">
+                                    <i class="ph ph-eye"></i>
+                                </a>
+                                <button class="btn btn-secondary btn-icon btn-sm" title="Take Screenshot" onclick="takeScreenshot('{{ device.device_id }}')">
+                                    <i class="ph ph-camera"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="ph ph-devices"></i>
+                                <h3>No devices connected</h3>
+                                <p>Devices will appear here once they connect to the server.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="activity-list">
+                {% for activity in recent_activity %}
+                <div class="activity-item" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px;">
+                    <div class="activity-icon" style="width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+                        {% if activity.type == 'screenshot' %}background: rgba(59, 130, 246, 0.15); color: var(--info);{% endif %}
+                        {% if activity.type == 'keylog' %}background: rgba(16, 185, 129, 0.15); color: var(--success);{% endif %}
+                        {% if activity.type == 'credential' %}background: rgba(139, 92, 246, 0.15); color: var(--accent-primary);{% endif %}
+                        {% if activity.type == 'command' %}background: rgba(245, 158, 11, 0.15); color: var(--warning);{% endif %}">
+                        <i class="ph ph-{{ activity.icon }}"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 13px;">{{ activity.message }}</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">{{ activity.time|timesince }} ago</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state" style="padding: 40px 20px;">
+                    <i class="ph ph-clock"></i>
+                    <h3>No recent activity</h3>
+                    <p>Activity will appear here as devices report.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Screenshots -->
+<div class="card fade-in" style="margin-top: 24px;">
+    <div class="card-header">
+        <h3 class="card-title">Recent Screenshots</h3>
+        <a href="{% url 'screenshots' %}" class="btn btn-secondary btn-sm">
+            View All
+            <i class="ph ph-arrow-right"></i>
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="screenshot-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;">
+            {% for screenshot in recent_screenshots %}
+            <div class="screenshot-item" style="cursor: pointer;" onclick="viewScreenshot('{{ screenshot.secure_url }}')">
+                <div style="aspect-ratio: 16/10; background: var(--bg-tertiary); border-radius: var(--radius-md); overflow: hidden; position: relative;">
+                    <img src="{{ screenshot.secure_url }}" alt="Screenshot" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                        <div style="font-size: 12px; color: white;">{{ screenshot.device.hostname }}</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.6);">{{ screenshot.captured_at|timesince }} ago</div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1;">
+                <div class="empty-state">
+                    <i class="ph ph-image"></i>
+                    <h3>No screenshots yet</h3>
+                    <p>Screenshots will appear here once captured.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function takeScreenshot(deviceId) {
+    fetch('/api/commands/send/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            device_id: deviceId,
+            command_type: 'screenshot',
+            payload: {}
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert('Screenshot command sent!');
+    })
+    .catch(err => {
+        alert('Failed to send command');
+    });
+}
+
+function viewScreenshot(url) {
+    window.open(url, '_blank');
+}
+</script>
+{% endblock %}

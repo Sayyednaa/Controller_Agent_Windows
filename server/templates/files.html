@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Files - Controller{% endblock %}
+{% block page_title %}Files{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <p style="color: var(--text-secondary); font-size: 14px;">
+        Files uploaded from devices
+    </p>
+</div>
+
+<div class="card fade-in">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Device</th>
+                    <th>Size</th>
+                    <th>Type</th>
+                    <th>Uploaded</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 36px; height: 36px; background: var(--bg-tertiary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
+                                <i class="ph ph-file" style="font-size: 18px; color: var(--text-secondary);"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">{{ file.original_filename }}</div>
+                                <div style="font-size: 12px; color: var(--text-muted); font-family: monospace;">{{ file.public_id|truncatechars:30 }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ file.device.hostname }}</td>
+                    <td>{{ file.size_bytes|filesizeformat }}</td>
+                    <td><span class="badge badge-info">{{ file.file_type }}</span></td>
+                    <td style="color: var(--text-secondary);">{{ file.created_at|timesince }} ago</td>
+                    <td>
+                        <a href="{{ file.secure_url }}" target="_blank" class="btn btn-secondary btn-sm">
+                            <i class="ph ph-download"></i>
+                            Download
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state" style="padding: 60px 20px;">
+                            <i class="ph ph-folder" style="font-size: 64px;"></i>
+                            <h3 style="margin-top: 16px;">No files uploaded</h3>
+                            <p>Files will appear here once devices upload them.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

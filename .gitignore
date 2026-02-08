@@ -1,0 +1,11 @@
+# Exclude agent and extension as requested
+agent/
+extension/
+.venv/
+
+# Python/Django ignores
+*.pyc
+__pycache__/
+*.sqlite3
+.env
+.DS_Store

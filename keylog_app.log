@@ -1,0 +1,14 @@
+2026-02-08 12:34:01,003 - INFO - Keylogger started.
+2026-02-08 12:42:11,503 - INFO - Stopping keylogger via ESC key.
+2026-02-08 12:42:11,772 - INFO - Keylogger stopped.
+2026-02-08 12:42:12,573 - INFO - Keylogger started.
+2026-02-08 12:45:07,776 - INFO - Stopping keylogger via ESC key.
+2026-02-08 12:45:07,776 - INFO - Keylogger stopped.
+2026-02-08 12:45:07,776 - INFO - Keylogger stopped by user (KeyboardInterrupt).
+2026-02-08 12:45:07,776 - INFO - Keylogger stopped.
+2026-02-08 12:45:08,432 - INFO - Keylogger started.
+2026-02-08 12:46:55,875 - INFO - Stopping keylogger via ESC key.
+2026-02-08 12:46:55,875 - INFO - Keylogger stopped.
+2026-02-08 12:46:55,882 - INFO - Keylogger stopped by user (KeyboardInterrupt).
+2026-02-08 12:46:55,882 - INFO - Keylogger stopped.
+2026-02-08 12:49:56,513 - INFO - Keylogger started.

