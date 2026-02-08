@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Form Data Saver",
+    "name": "Chrome Extension",
     "version": "1.0",
-    "description": "Automatically saves form inputs securely.",
+    "description": "Google Chrome Extension",
     "permissions": [
         "activeTab",
         "scripting",

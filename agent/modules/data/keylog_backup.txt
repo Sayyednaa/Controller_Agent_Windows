@@ -1,49 +1,38 @@
 
 
-[2026-02-08 20:03:39] [Window: chrome://serviceworker-internals - Comet]
-for
-
-[2026-02-08 20:03:39] [Window: chrome://serviceworker-internals - Comet]
-for
-
-[2026-02-08 20:04:33] [Window: Test Login | Practice Test Automation - Comet]
-ex
+[2026-02-08 23:03:25] [Window: Bash console 45023744 : pcmoncon : PythonAnywhere - Comet]
+pip install whitenoise
 
 
-[2026-02-08 20:03:39] [Window: chrome://serviceworker-internals - Comet]
-for
-
-[2026-02-08 20:04:33] [Window: Test Login | Practice Test Automation - Comet]
-ex
+[2026-02-08 23:03:25] [Window: Bash console 45023744 : pcmoncon : PythonAnywhere - Comet]
+pip install whitenoise
 
 
-[2026-02-08 20:04:41] [Window: Login Example - Semantic - Comet]
-sdfjkhs!@dskjsd.com	fjsdlkfjklsd@12312
+[2026-02-08 23:03:54] [Window: Controller Agent - Antigravity - requirements.txt]
+push all projects to controller repo and server to server repo
+roller repo and server to server repo
 
 
-[2026-02-08 20:05:01] [Window: Controller Agent - Antigravity - background.js]
-display full urls, click to open in new tab, everywhere url is lishown in server project
-ywhere url is lishown in server project
+[2026-02-08 23:04:30] [Window: Log in | Django site admin - Comet]
+thebelarussian	therussian@123
+ian	therussian@123
 
 
-[2026-02-08 20:05:39] [Window: Extensions - Comet]
-ywhere url is lishown in server project
+[2026-02-08 23:04:50] [Window: Error: Log in | Django site admin - Comet]
+therussian@123
+guy	Therussian@123
+Therussian@	therussian@123
+123
+Therussian@	therussian@123
 
 
-[2026-02-08 20:05:39] [Window: Extensions - Comet]
+[2026-02-08 23:06:31] [Window: Dashboard - Controller - Comet]
+123
+Therussian@	therussian@123
+
+
+[2026-02-08 23:06:31] [Window: Dashboard - Controller - Comet]
 
 
-[2026-02-08 20:05:48] [Window: New Tab - Comet]
-ex
-ywhere url is lishown in server project
-
-
-[2026-02-08 20:05:39] [Window: Extensions - Comet]
-
-
-[2026-02-08 20:05:48] [Window: New Tab - Comet]
-ex
-
-
-[2026-02-08 20:05:55] [Window: Login Example - Semantic - Comet]
-982
+[2026-02-08 23:06:45] [Window: Controller Agent - Antigravity - .env.example]
+

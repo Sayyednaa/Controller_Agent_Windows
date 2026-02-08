@@ -1,5 +1,5 @@
 // CHANGE THIS URL for production (e.g., https://yourname.pythonanywhere.com)
-const SERVER_URL = "http://localhost";
+const SERVER_URL = "http://192.168.1.44:80";
 
 // Keep-Alive Mechanism
 chrome.alarms.create("keepAlive", { periodInMinutes: 1.0 });

